@@ -1,0 +1,51 @@
+
+# Activar el motor de reescritura
+RewriteEngine On
+
+# Definir la base del proyecto
+RewriteBase /Administrador/
+
+# Prevenir el acceso directo a directorios sensibles
+RewriteRule ^core/ - [F,L]
+RewriteRule ^config/ - [F,L]
+
+# Si el archivo o directorio existe físicamente, permitir acceso
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Excepciones: permitir acceso a assets
+RewriteCond %{REQUEST_URI} !^/Administrador/assets/
+
+# Reescribir todas las peticiones a index.php
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+
+# Prevenir listado de directorios
+Options -Indexes
+
+# Configuración de archivos por defecto
+DirectoryIndex index.php
+
+# Configuración de seguridad
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Prevenir acceso a archivos sensibles
+<FilesMatch "\.(ini|log|sql)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Configuración de cache para assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType application/x-javascript "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+</IfModule>

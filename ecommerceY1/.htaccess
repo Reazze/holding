@@ -1,0 +1,52 @@
+Options All -Indexes
+
+RewriteEngine On
+Options -Indexes
+
+# Headers de seguridad
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "DENY"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# Protección contra ataques
+<IfModule mod_rewrite.c>
+    # Bloquear acceso a archivos sensibles
+    RewriteRule ^(\.htaccess|\.htpasswd|\.git|\.env|composer\.json|composer\.lock|package\.json|package-lock\.json|yarn\.lock|README\.md|CHANGELOG\.md|LICENSE|\.gitignore|\.gitattributes)$ - [F,L]
+    
+    # Bloquear acceso a directorios del sistema
+    RewriteRule ^(core/controller/|core/app/model/|core/app/action/|storage/logs/|database\.sql)$ - [F,L]
+    
+    # Bloquear acceso a archivos de configuración
+    RewriteRule ^(sftp-config\.json|\.vscode|\.idea|\.DS_Store|Thumbs\.db)$ - [F,L]
+</IfModule>
+
+# Bloquear acceso a archivos de log
+<Files "*.log">
+    Require all denied
+</Files>
+
+# Bloquear acceso a archivos de base de datos
+<Files "*.sql">
+    Require all denied
+</Files>
+
+# Reglas de reescritura para la aplicación
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^$ index.php?view=index [L,QSA]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.php?view=$1 [L,QSA]
+
+DirectoryIndex index-view.php
+
+# Configuración de seguridad adicional
+<IfModule mod_security.c>
+    SecRuleEngine On
+    SecRequestBodyAccess On
+    SecRule REQUEST_HEADERS:Content-Type "text/xml" \
+        "id:'200000',phase:1,t:none,t:lowercase,pass,nolog,ctl:requestBodyProcessor=XML"
+</IfModule>
